@@ -8,7 +8,7 @@ from app_users.utils.errors import UserNotFound
 from typing import Optional, List
 
 
-class UserRepository:
+class UsersRepository:
     def __init__(self, db: Session):
         self.db = db
 
@@ -97,6 +97,7 @@ class UserRepository:
         return user
 
     def delete_user(self, user_id: int):
-        self.db.delete(User)
+        user = self.get_user(user_id)
+        self.db.delete(user)
         self.db.commit()
         return True
