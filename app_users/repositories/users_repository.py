@@ -8,7 +8,7 @@ from app_users.utils.errors import UserNotFound
 from typing import Optional, List
 
 
-class UserRepository:
+class UsersRepository:
     def __init__(self, db: Session):
         self.db = db
 
