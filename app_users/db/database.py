@@ -4,6 +4,6 @@ from sqlalchemy import create_engine
 DATABASE_URL = "postgresql://postgres:postgres@localhost:5432/postgres"
 
 engine = create_engine(DATABASE_URL)
-Session_local = sessionmaker(blind=engine)
+SessionLocal = sessionmaker(blind=engine)
 
 Base = declarative_base()
