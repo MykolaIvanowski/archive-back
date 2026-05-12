@@ -66,3 +66,45 @@ def list_user(page: int = Query(1, ge=1),
         order=order
     )
 
+@router.put("/{user_id}", response_model=UserRead)
+def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)):
+    service = UsersService(db=db)
+
+    try:
+        return service.update_user(
+            user_id=user_id,
+            email=payload.email,
+            first_name=payload.first_name,
+            last_name=payload.last_name,
+            age=payload.age
+        )
+    except EmailAlreadyExists as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=404, detail="User not found")
+
+
+@router.patch("/{user_id}", response_model=UserRead)
+def partial_update(user_id: int, payload: UserPatch, db: Session = Depends(get_db)):
+    service = UsersService(db=db)
+
+    try:
+        return service.partial_update_user(user_id=user_id, email=payload.email,
+                                           first_name=payload.first_name,
+                                           last_name=payload.last_name,
+                                           age=payload.age)
+    except EmailAlreadyExists as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception:
+        raise HTTPException(status_code=404, detail='User not found')
+
+
+@router.delete("/{user_id}", status_code=204)
+def delete_user(user_id: int, db: Session = Depends(get_db)):
+    service = UsersService(db=db)
+
+    try:
+        service.delete_user(user_id)
+        return
+    except Exception:
+        raise HTTPException(status_code=404, detail="User not found")
