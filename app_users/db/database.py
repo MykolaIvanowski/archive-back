@@ -1,3 +1,4 @@
+from pygments.styles.dracula import yellow
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
 
@@ -7,3 +8,12 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(blind=engine)
 
 Base = declarative_base()
+
+
+def get_db():
+    db = SessionLocal()
+    try :
+        yield db
+    finally:
+        db.close()
+    

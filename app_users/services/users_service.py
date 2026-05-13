@@ -49,17 +49,16 @@ class UsersService:
                                             last_name=last_name, age=age)
 
 
-    def partial_update_user(self, user_id: int, email: str, first_name: str, last_name: str,
-                            age: Optional[int])-> User:
+    def partial_update_user(self, user_id: int, email: Optional[str] = None, first_name: Optional[str] = None,
+                            last_name: Optional[str] = None, age: Optional[int] = None)-> User:
         if email is not None:
             existing = self._get_by_email(email)
             if existing and existing.id != user_id:
-                raise EmailAlreadyExists(f'email already existing for name {email}')
+                raise EmailAlreadyExists(f'email already exists for name {email}')
 
         return self.repository.partial_update_user(user_id=user_id, email=email, first_name=first_name,
                                                    last_name=last_name, age=age)
 
-    def delete_user(self, email: str)-> Optional[User]:
-        query = self.db.query(User).filter(User.email == email).first()
-        return query
+    def delete_user(self, user_id: int)-> Optional[User]:
+        return self.repository.delete_user(user_id=user_id)
 
