@@ -1,8 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
-
-from app_users.db.database import SessionLocal
+from  app_users.db.database import get_db
 from app_users.services.users_service import UsersService, EmailAlreadyExists
 from app_users.schemas.user import (
     UserCreate,
@@ -11,18 +10,11 @@ from app_users.schemas.user import (
     UserPatch,
 )
 
+
 router  =  APIRouter(prefix="/users", tags=["users"])
 
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-@router.post("/", responce_model=UserRead, tags=["users"])
+@router.post("/", response_model=UserRead, tags=["users"])
 def create_user(payload: UserCreate, db: Session = Depends(get_db)):
     service  =  UsersService(db=db)
 
