@@ -1,4 +1,3 @@
-from pygments.styles.dracula import yellow
 from sqlalchemy.orm import declarative_base, sessionmaker
 from sqlalchemy import create_engine
 
@@ -16,4 +15,3 @@ def get_db():
         yield db
     finally:
         db.close()
-    

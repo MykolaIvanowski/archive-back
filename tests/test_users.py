@@ -1,8 +1,5 @@
-from urllib import response
-
 import pytest
 from fastapi.testclient import TestClient
-from pygments.styles.dracula import yellow
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
@@ -72,5 +69,5 @@ def test_get_user():
 def test_get_user_not_found():
     response = client.get("/users/10000")
     assert response.status_code == 404
-    
+
 
