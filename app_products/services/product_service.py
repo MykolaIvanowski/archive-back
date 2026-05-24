@@ -43,7 +43,8 @@ class ProductService:
         return self.repository.list_product( page=page, page_size=page_siza, name=name,
                                              category=category, price_max=price_max,
                                              price_min=price_min, sort=sort, order=order)
-1
+
+
     def update_product(self,product_id: int, name: str, category: str, price: float,
                        in_stock: bool)-> Product:
         if name.strip():
