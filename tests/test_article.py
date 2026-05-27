@@ -118,3 +118,24 @@ def test_delete_article():
 
     response = client.get("/articles/1")
     assert response.status_code == 404
+
+
+def test_restore_article():
+    response = client.post("/articles/1/restore")
+    assert response.status_code == 200
+    assert response.json()["delete_at"] is None
+    response = client.get("/articles/1")
+    assert response.status_code == 200
+
+def test_audit_log_entries():
+    response = client.get("/articles/1/audit-log")
+    assert response.status_code == 200
+
+    logs = response.json()
+    assert len(logs) >= 4
+
+    actions = [log["action"] for log in logs]
+    assert "create" in actions
+    assert "update" in actions
+    assert "delete" in actions
+    assert "restore" in actions

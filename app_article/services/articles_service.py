@@ -65,7 +65,14 @@ class ArticlesService:
         except VersionConflict as e:
             raise VersionConflict(str(e))
         except ArticleNotFound as e:
-            raise ArticleNotFound(f"Article with id {article_id} not found")
+            raise ArticleNotFound( f"Article with id {article_id} not found")
 
     def delete_article(self, article_id: int) -> bool:
         return self.articles_repository.delete_article(article_id)
+
+
+    def restore_article(self, article_id: int) -> Article:
+        try:
+            self.articles_repository.restore_article(article_id)
+        except ArticleNotFound as e:
+            raise ArticleNotFound(f"Article with id {article_id} not found")
