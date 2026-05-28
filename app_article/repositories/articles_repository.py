@@ -5,6 +5,13 @@ from typing import Optional, List
 from app_article.models.article import Article, ArticleAuditLogs
 from app_article.utils.errors import ArticleNotFound, VersionConflict
 
+def deep_merge(original: dict, patch: dict):
+    for key, value in patch.items():
+        if key in original and isinstance(original[key], dict) and isinstance(value, dict):
+            original[key] = deep_merge(original[key], value)
+        else:
+            original[key] =  value
+    return original
 
 class ArticlesRepository:
     def __init__(self, db: Session):
@@ -15,8 +22,8 @@ class ArticlesRepository:
                                old_data=old_data, new_data=new_data)
         self.db.add(log)
 
-    def create_article(self, title: str, content) -> Article:
-        article = Article(title=title, content=content)
+    def create_article(self, title: str, content, metadata: dict, settings: dict, tags: list) -> Article:
+        article = Article(title=title, content=content, metadata=metadata, settings=settings, tags=tags)
 
         with self.db.begin() :
             self.db.add(article)
@@ -52,7 +59,8 @@ class ArticlesRepository:
         query = query.offset(offset).limit(page_size)
         return self.db.execute(query).scalars().all()
 
-    def update_article(self, article_id: int, title: str, content: str, expected_version: int) -> Article:
+    def update_article(self, article_id: int, title: str, content: str, expected_version: int,
+                       metadata: dict, settings: dict, tags: list) -> Article:
         article = self.get_article(article_id)
         old_data = {"title": article.title, "content": article.content}
         if article.version != expected_version:
@@ -60,6 +68,9 @@ class ArticlesRepository:
         article.title = title
         article.content = content
         article.version = expected_version
+        article.metadata = metadata
+        article.settings = settings
+        article.tags = tags
 
         with self.db.begin():
             self.db.add(article)
@@ -73,7 +84,8 @@ class ArticlesRepository:
         return article
 
     def patch_article(self, article_id: int,expected_version: int, title: Optional[str] = None,
-                      content: Optional[str] = None) -> Article:
+                      content: Optional[str] = None, metadata: Optional[dict]= None,
+                      settings: Optional[dict] = None, tags: Optional[list] = None) -> Article:
         article = self.get_article(article_id)
         old_data = {"title": article.title, "content": article.content}
         if article.version != expected_version:
@@ -84,6 +96,16 @@ class ArticlesRepository:
 
         if content is not None:
             article.content = content
+
+        if metadata is not None:
+            article.metadata = deep_merge(article.metadata, metadata)
+
+        if settings is not None:
+            article.settings = deep_merge(article.settings, settings)
+
+        if tags is not None:
+            article.tags = tags
+
 
         article.version = expected_version + 1
 
