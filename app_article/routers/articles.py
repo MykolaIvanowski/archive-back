@@ -27,7 +27,9 @@ def create_article(payload: ArticleCreate, db: Session = Depends(get_db)):
     service = ArticlesService(db=db)
 
     try:
-        return service.create_article(title=payload.title, content=payload.content)
+        return service.create_article(title=payload.title, content=payload.content,
+                                      metadata=payload.metadata, settings=payload.settings,
+                                      tags=payload.tags)
     except InvalidArticleData as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -55,7 +57,8 @@ def list_articles(page: int = Query(1, ge=1), page_size: int = Query(20, ge=1, l
 def update_article(article_id: int, payload: ArticleUpdate, db: Session = Depends(get_db)):
     service = ArticlesService(db=db)
     try:
-        return service.update_article(article_id, title=payload.title, content=payload.content,version=payload.version)
+        return service.update_article(article_id, title=payload.title, content=payload.content,version=payload.version,
+                                      metadata=payload.metadata, settings=payload.settings,tags=payload.tags)
     except ArticleNotFound as e:
         raise HTTPException(status_code=404, detail="Article not found")
     except InvalidArticleData as e:
@@ -70,7 +73,8 @@ def patch_article(article_id: int, payload: ArticleUpdate, db: Session = Depends
 
     try:
         return service.update_article(article_id=article_id, title=payload.title, content=payload.content,
-                                      version=payload.version)
+                                      version=payload.version, metadata=payload.metadata, settings=payload.settings,
+                                      tags=payload.tags)
     except ArticleNotFound as e:
         raise HTTPException(status_code=404, detail="Article not found")
     except InvalidArticleData as e:

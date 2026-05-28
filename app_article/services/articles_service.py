@@ -16,13 +16,15 @@ class ArticlesService:
         self.articles_repository = ArticlesRepository(db)
 
 
-    def create_article(self, title: str, content: str) -> Article:
+    def create_article(self, title: str, content: str, metadata: dict, settings: dict, tags: list) -> Article:
 
         if not title:
             raise InvalidArticleData("Title cannot be empty")
         if not content:
             raise InvalidArticleData("Content cannot be empty")
-        return self.articles_repository.create_article(title, content)
+        return self.articles_repository.create_article(
+            title=title, content=content, metadata=metadata, settings=settings, tags=tags
+        )
 
     def get_article(self, article_id: int) -> Article:
         return self.articles_repository.get_article(article_id)
@@ -35,7 +37,8 @@ class ArticlesService:
             page=page, page_size=page_size, title=title, version_min=version_min, version_max=version_max)
 
 
-    def update_article(self, article_id: int, title: str, content: str, version: int) -> Article:
+    def update_article(self, article_id: int, title: str, content: str, version: int,
+                       metadata: dict, settings: dict, tags: list) -> Article:
         if not title.strip():
             raise InvalidArticleData("Title cannot be empty")
         if not content.strip():
@@ -43,7 +46,9 @@ class ArticlesService:
 
         try:
             self.articles_repository.update_article(
-                article_id=article_id, title=title, content=content, expected_version=version)
+                article_id=article_id, title=title, content=content, expected_version=version,
+                metadata=metadata, settings=settings, tags=tags
+            )
         except VersionConflict as e :
             raise VersionConflict(str(e))
         except ArticleNotFound as e:
@@ -51,7 +56,8 @@ class ArticlesService:
 
 
     def patch_article(self, article_id: int, version: int, title: Optional[str]= None,
-                    content: Optional[str] = None) -> Article:
+                    content: Optional[str] = None, metadata: Optional[dict] = None,
+                      settings: Optional[dict] = None,  tags: Optional[list] = None) -> Article:
         if title is not None and not title.strip():
             raise InvalidArticleData("Title cannot be empty")
 
@@ -60,7 +66,8 @@ class ArticlesService:
 
         try:
             self.articles_repository.patch_article(
-                article_id=article_id, title=title, content=content, expected_version=version
+                article_id=article_id, title=title, content=content, expected_version=version,
+                metadata=metadata, settings=settings, tags=tags
             )
         except VersionConflict as e:
             raise VersionConflict(str(e))

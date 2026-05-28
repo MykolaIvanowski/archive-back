@@ -39,7 +39,10 @@ def setup_database():
 def test_create_article():
     payload = {
         "title": "First Article",
-        "content": "Hello world"
+        "content": "Hello world",
+        "metadata": {"author": "New author", "views": 10},
+        "settings": {"theme": {"color": "blue"}},
+        "tags": ["python", "fastapi"]
     }
     response = client.post("/articles", json=payload)
     assert response.status_code == 201
@@ -47,6 +50,11 @@ def test_create_article():
     assert data["title"] == "First Article"
     assert data["content"] == "Hello world"
     assert data["version"] == 1
+
+
+    assert data["metadata"]["author"] == "New author"
+    assert data["settings"]["theme"]["color"] == "blue"
+    assert data["tags"] == ["python", "fastapi"]
 
 def test_get_article():
     response = client.get("/articles/1")
@@ -61,7 +69,11 @@ def test_update_article_success():
     payload = {
         "title": "Updated Title",
         "content": "Updated content",
-        "version": version
+        "version": version,
+        "metadata": {"author": "New author", "views": 10},
+        "settings": {"theme": {"color": "blue"}},
+        "tags": ["python", "fastapi"]
+
     }
 
     response = client.put("/articles/1", json=payload)
@@ -71,12 +83,18 @@ def test_update_article_success():
     assert data["content"] == "Updated content"
     assert data["version"] == version + 1
 
+    assert data["metadata"]["author"] == "New author"
+    assert data["settings"]["theme"]["color"] == "blue"
+    assert data["tags"] == ["python", "fastapi"]
 
 def test_get_article_version_conflict():
     payload = {
         "title": "Conflict Title",
         "content": "Conflict content",
-        "version": 1   # outdated
+        "version": 1,   # outdated
+        "metadata": {"author": "New author", "views": 10},
+        "settings": {"theme": {"color": "blue"}},
+        "tags": ["python", "fastapi"]
     }
     response = client.put("/articles/1", json=payload)
     assert response.status_code == 409
@@ -139,3 +157,60 @@ def test_audit_log_entries():
     assert "update" in actions
     assert "delete" in actions
     assert "restore" in actions
+
+def test_patch_article_deep_merge():
+    payload = {
+        "metadata": {"views": 20},  # update only one field
+        "settings": {"theme": {"dark": True}},  # deep merge
+    }
+    response = client.patch("/articles/1", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["metadata"]["author"] == "New author"
+    assert data["metadate"]["views"] == 20
+
+    assert data["settings"]["theme"]["color"] == "blue"
+    assert data["settings"]["theme"]["dark"] is True
+    assert data["tags"] == ["python", "fastapi"]
+
+def test_patch_replace_tags():
+    payload = {
+        "tags":["deep", "patch"]
+    }
+    response = client.patch("/articles/1", json=payload)
+    assert response.status_code == 200
+    assert response.json()["tags"] == ["deep", "patch"]
+
+
+def test_patch_title_only():
+    payload = {"title": "Title updated"}
+    response = client.patch("/articles/1", json=payload)
+
+    assert response.status_code == 200
+    assert response.json()["title"] == "Title updated"
+
+def test_put_full_update():
+    payload = {
+        "title": "PUT Title",
+        "content": "PUT Content",
+        "metadata": {"x": 1},
+        "settings": {"y": 2},
+        "tags": ["put"]
+    }
+
+    response = client.put("/articles/1", json=payload)
+    assert response.status_code == 200
+    data = response.json()
+    assert data["title"] == "PUT Title"
+    assert data["content"] == "PUT Content"
+    assert data["metadata"]["x"] == 1
+    assert data["settings"]["y"] == 2
+    assert data["tags"] == ["put"]
+
+
+def test_get_article():
+    response = client.get("/articles/1")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["title"] == "PUT Title"
