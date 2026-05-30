@@ -11,7 +11,7 @@ class OrderRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def create_order(self, user_id: int, total_amount: float)-> Order:
+    def create_order(self, user_id: int,product: str, metadata: dict, amount: int,  total_amount: float)-> Order:
         user = self.db.get(User, User)
 
         if not user:
@@ -23,6 +23,9 @@ class OrderRepository:
                 user_id=user_id,
                 total_amount=total_amount,
                 status=OrderStatus.pending,
+                amount=amount,
+                product=product,
+                metadata=metadata,
             )
             self.db.add(order)
 
