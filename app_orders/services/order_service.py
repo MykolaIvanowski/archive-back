@@ -14,16 +14,17 @@ class OrdersService:
         self.user_repository = UsersRepository(db)
 
 
-    def create_order(self, user_id: int, total_amount: float)-> Order:
+    def create_order(self, user_id: int, total_amount: float, metadata: dict,amount: int, product: str )-> Order:
         if total_amount <= 0:
             raise ValueError(f"total amount must be grater than 0")
 
-        try:
-            self.user_repository.get_user(user_id)
-        except UserNotFound:
-            raise UserNotFound(f"user {user_id} does not exist")
-        return self.repository.create_order(user_id, total_amount)
-
+        return self.repository.create_order(
+            user_id=user_id,
+            total_amount=total_amount,
+            metadata=metadata,
+            amount=amount,
+            product=product,
+        )
     def get_order(self, order_id: int)-> Order:
         return self.repository.get_order(order_id)
 

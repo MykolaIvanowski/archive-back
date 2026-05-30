@@ -15,3 +15,10 @@ class CannotModifyPaidOrder(Exception):
 
 class CannotDeletePaidOrder(Exception):
     pass
+
+
+class IdempotencyKeyConflict(Exception):
+    pass
+
+class IdempotencyKeyNotFound(Exception):
+    pass

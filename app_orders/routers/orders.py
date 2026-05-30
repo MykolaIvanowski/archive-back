@@ -1,10 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Header
 from sqlalchemy.orm import Session
 from typing import List, Optional
 
 
 from app_orders.db.database import  get_db
+from app_orders.models import idempotency_key
 from app_orders.models.order import OrderStatus
+from app_orders.services.imdepotent_service import IdempotentService
 from app_orders.services.order_service import (
     OrdersService,
     InvalidStatusTransition,
@@ -16,17 +18,24 @@ from app_orders.schemas.order import (
 )
 from app_orders.utils.errors import UserNotFound
 from app_orders.utils.errors import OrderNotFoundException, CannotDeletePaidOrder
+from app_users.schemas.user import UserCreate
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
 
 @router.post("/", response_model=OrderRead, status_code=201)
-def create_order(payload: OrderCreate, db: Session = Depends(get_db)):
-    service = OrdersService(db=db)
+def create_order(user_id: int, product: str, amount: int, metadata: dict,
+                 idempotency_key: str = Header(..., alias="idempotency-key"), db: Session = Depends(get_db)):
+    if not idempotency_key:
+        raise HTTPException(status_code=400, detail="idempotency key required")
+
+    service = IdempotentService(db=db)
 
     try:
-        return service.create_order(user_id=payload.user_id,
-                                    total_amount=payload.total_amount,)
+        result = service.create_order(user_id=user_id,key=idempotency_key, product=product,
+                                      amount=amount, metadata=metadata or {}, total_amount=amount)
+        if result.get("status") == "processing":
+            raise HTTPException(status_code=409, detail="Request is already being processed")
     except UserNotFound as e:
         raise HTTPException(status_code=404, detail=str(e))
     except ValueError as e:

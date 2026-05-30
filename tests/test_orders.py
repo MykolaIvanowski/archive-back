@@ -122,4 +122,55 @@ def test_delete_order_success():
 
 
 
+def _test_idempotency_post_first_call():
+    response = client.post(
+        "/orders/",
+        headers={"Idempotency-Key": "abc123"},
+        params={"product": "Laptop", "amount": 1000},
+        json={"metadata": {"color": "black"}}
+    )
 
+    assert response.status_code == 200
+    data = response.json()
+    assert data["metadata"] == {"color": "black"}
+    assert data["total_amount"] == 1000
+    assert data["status"] == "processing"
+
+
+def _test_idempotency_post_second_call():
+    response = client.post(
+        "/orders/",
+        headers={"Idempotency-Key": "abc123"},
+        params={"product": "Laptop", "amount": 1000},
+        json={"metadata": {"color": "black"}}
+    )
+
+    assert response.status_code == 200
+    data = response.json()
+
+    assert data["metadata"] == {"color": "black"}
+    assert data["total_amount"] == 1000
+    assert data["status"] == "processing"
+
+def _test_idempotency_creates_only_one_order():
+    response = client.get("/orders/all")
+    assert response.status_code == 200
+    data = response.json()
+    assert len(data)  == 1
+
+def _test_idempotency_post_conflict_processing():
+    from app_orders.models.idempotency_key import IdempotencyKey
+
+    db = TestingSessionLocal()
+    db.add(IdempotencyKey(key="abc123", status="processing"))
+    db.commit()
+
+    response = client.post(
+        "/orders/",
+        headers={"Idempotency-Key": "processing-key"},
+        params={"product": "Phone", "amount": 500},
+        json={"metadata": {}}
+    )
+
+    assert response.status_code ==  409
+    assert response.json()["detail"] == "Request is already being processed"
