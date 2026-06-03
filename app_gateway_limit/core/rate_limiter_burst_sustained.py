@@ -15,8 +15,8 @@ class AdvancedRateLimiter:
 
 
     def allowed_burst(self, key: str) -> bool:
-        bucket_key = f"bucked: {key}"
-        last_refill_key = f"bucked_refill: {key}"
+        bucket_key = f"bucked:{key}"
+        last_refill_key = f"bucked_refill:{key}"
         now = time.time()
 
         tokens = float(redis_client.get(bucket_key))

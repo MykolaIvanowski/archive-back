@@ -10,7 +10,7 @@ class RateLimiter:
     def is_allowed(self, key:str) -> bool:
         now = int(time.time())
 
-        window_key = f"rate: {key} : {now // self.widow_seconds}"
+        window_key = f"rate:{key}:{now // self.widow_seconds}"
         count  = redis_client.incr(window_key)
 
         if count == 1:
