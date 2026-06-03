@@ -10,7 +10,7 @@ class DynamicRateLimiter:
     DEFAULT_WINDOW = 60
 
     def get_limits(self, user_key: str):
-        raw = redis_client.get(f"limits: {user_key} ")
+        raw = redis_client.get(f"limits:{user_key}")
         if not raw:
             return {
                 "burst": self.DEFAULT_BURST_LIMIT,
@@ -22,8 +22,8 @@ class DynamicRateLimiter:
 
 
     def allow_burst(self, key: str, burst: int, refill: float ) -> bool:
-        burst_key = f"bucket: {key} "
-        refill_key = f"bucket_refill: {key} "
+        burst_key = f"bucket:{key}"
+        refill_key = f"bucket_refill:{key}"
         now = time.time()
 
         tokens = redis_client.get(burst_key)
@@ -47,7 +47,7 @@ class DynamicRateLimiter:
 
     def allow_sustained(self, key: int, sustained: int, window: int ) -> bool:
         now = time.time()
-        window_key = f"window: {key} : {now//window} "
+        window_key = f"window:{key}:{now//window}"
         count = redis_client.incr(window_key)
         if count == 1:
             redis_client.expire(window_key, window)
