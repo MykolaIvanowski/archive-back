@@ -1,21 +1,24 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
+from pydantic import version
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from  app_users.db.database import get_db
 from app_users.services.users_service import UsersService, EmailAlreadyExists
-from app_users.schemas.user import (
-    UserCreate,
-    UserRead,
-    UserUpdate,
-    UserPatch,
+from app_users.schemas.user_v1 import (
+    UserCreateV1,
+    UserReadV1,
+    UserUpdateV1,
+    UserPatchV1,
 )
 
+## Versioning could be in different folders v1 v2
 
-router  =  APIRouter(prefix="/users", tags=["users"])
+router  =  APIRouter(prefix="/v1/users", tags=["users-v1"], version="v1")
+router.version = "v1"
 
 
-@router.post("/", response_model=UserRead, tags=["users"])
-def create_user(payload: UserCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=UserReadV1, tags=["users"])
+def create_user_v1(payload: UserCreateV1, db: Session = Depends(get_db)):
     service  =  UsersService(db=db)
 
     try:
@@ -30,8 +33,8 @@ def create_user(payload: UserCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=400, detail=str(e))
 
 
-@router.get("/{user_id", response_model=UserRead)
-def get_user(user_id: int, db: Session = Depends(get_db)):
+@router.get("/{user_id", response_model=UserReadV1)
+def get_user_v1(user_id: int, db: Session = Depends(get_db)):
     service = UsersService(db=db)
 
     try:
@@ -41,8 +44,8 @@ def get_user(user_id: int, db: Session = Depends(get_db)):
 
 
 
-@router.get("/", response_model=List[UserRead])
-def list_user(page: int = Query(1, ge=1),
+@router.get("/", response_model=List[UserReadV1])
+def list_user_v1(page: int = Query(1, ge=1),
               page_size: int =Query(20, ge=1, le=100),
               email: Optional[str] = None, first_name: Optional[str]= None,
               last_name: Optional[str]= None, age_min: Optional[int] = None,
@@ -58,8 +61,8 @@ def list_user(page: int = Query(1, ge=1),
         order=order
     )
 
-@router.put("/{user_id}", response_model=UserRead)
-def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)):
+@router.put("/{user_id}", response_model=UserReadV1)
+def update_user_v1(user_id: int, payload: UserUpdateV1, db: Session = Depends(get_db)):
     service = UsersService(db=db)
 
     try:
@@ -76,8 +79,8 @@ def update_user(user_id: int, payload: UserUpdate, db: Session = Depends(get_db)
         raise HTTPException(status_code=404, detail="User not found")
 
 
-@router.patch("/{user_id}", response_model=UserRead)
-def partial_update(user_id: int, payload: UserPatch, db: Session = Depends(get_db)):
+@router.patch("/{user_id}", response_model=UserReadV1)
+def partial_update_v1(user_id: int, payload: UserPatchV1, db: Session = Depends(get_db)):
     service = UsersService(db=db)
 
     try:
@@ -92,11 +95,12 @@ def partial_update(user_id: int, payload: UserPatch, db: Session = Depends(get_d
 
 
 @router.delete("/{user_id}", status_code=204)
-def delete_user(user_id: int, db: Session = Depends(get_db)):
+def delete_user_v1(user_id: int, db: Session = Depends(get_db)):
     service = UsersService(db=db)
 
     try:
-        service.delete_user(user_id)
+        service.delete_user(user_id, version=router.version) # simple version in case versioning required change
+                                                             # only in bussines logic
         return
     except Exception:
         raise HTTPException(status_code=404, detail="User not found")

@@ -3,14 +3,14 @@ from typing import Optional
 from datetime import datetime
 
 
-class UserCreate(BaseModel):
+class UserCreateV1(BaseModel):
     email: EmailStr
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     age: Optional[int] = Field(None, ge=1, le=120)
 
 
-class UserRead(BaseModel):
+class UserReadV1(BaseModel):
     id: int
     email: EmailStr
     first_name: str
@@ -21,19 +21,19 @@ class UserRead(BaseModel):
     class Config:
         orm_mode = True
 
-class UserUpdate(BaseModel):
+class UserUpdateV1(BaseModel):
     email: EmailStr
     first_name: str = Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     age: Optional[int] = Field(None, ge=1, le=120)
 
 
-class UserPatch(BaseModel):
+class UserPatchV1(BaseModel):
     email: EmailStr
     first_name: str =  Field(..., min_length=1, max_length=100)
     last_name: str = Field(..., min_length=1, max_length=100)
     age: Optional[int] = Field(None, ge=1, le=120)
     
 
-class UserLogin(BaseModel):
+class UserLoginV1(BaseModel):
     pass

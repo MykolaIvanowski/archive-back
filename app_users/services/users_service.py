@@ -11,12 +11,17 @@ class UsersService:
         self.db = db
         self.repository = UsersRepository(db)
 
-    def _get_by_email(self, email: str) -> Optional[str]:
+    ### changes to the API contract, better use methods for v1-v2
+    def _get_by_email_v1(self, email: str) -> Optional[str]:
+        query = self.db.query(User).filter(User.email == email).first()
+        return query
+
+    def _get_by_email_v2(self, email: str) -> Optional[str]:
         query = self.db.query(User).filter(User.email == email).first()
         return query
 
 
-    def create_user(self, email:str, first_name: str, last_name: str,
+    def create_user_v1(self, email:str, first_name: str, last_name: str,
                     age: Optional[int]) -> User:
         existing = self._get_by_email(email)
         if existing:
@@ -24,10 +29,21 @@ class UsersService:
         return self.repository.create_user(email=email, first_name=first_name,
                                            last_name=last_name, age=age)
 
-    def get_user(self, user_id: int)-> User:
+    def create_user_v2(self, email:str, first_name: str, last_name: str,
+                    age: Optional[int]) -> User:
+        existing = self._get_by_email(email)
+        if existing:
+            raise EmailAlreadyExists(f'Email name already exists for {email}')
+        return self.repository.create_user(email=email, first_name=first_name,
+                                           last_name=last_name, age=age)
+
+    def get_user_v1(self, user_id: int)-> User:
         return self.repository.create_user(user_id)
 
-    def list_users(self, page: int = 1,page_size: int  = 20, email: Optional[str] = None,
+    def get_user_v2(self, user_id: int)-> User:
+        return self.repository.create_user(user_id)
+
+    def list_users_v1(self, page: int = 1,page_size: int  = 20, email: Optional[str] = None,
                    first_name: Optional[str] = None, last_name: Optional[str] =  None,
                    age_min: Optional[int]= None, age_max: Optional[int] = None,
                    sort: str = 'created_at', order: str = 'desc')-> List[User]:
@@ -38,8 +54,18 @@ class UsersService:
                                            order=order)
 
 
+    def list_users_v2(self, page: int = 1,page_size: int  = 20, email: Optional[str] = None,
+                   first_name: Optional[str] = None, last_name: Optional[str] =  None,
+                   age_min: Optional[int]= None, age_max: Optional[int] = None,
+                   sort: str = 'created_at', order: str = 'desc')-> List[User]:
 
-    def update_user(self, user_id: int, email: str,  first_name: str, last_name:str,
+        return self.repository.list_users(page =page, page_size=page_size, email=email,
+                                          first_name=first_name, last_name=last_name,
+                                          age_min=age_min, age_max=age_max, sort=sort,
+                                           order=order)
+
+
+    def update_user_v1(self, user_id: int, email: str,  first_name: str, last_name:str,
                     age: Optional[int])-> User:
         existing  = self._get_by_email(email)
         if existing and existing.id != user_id:
@@ -49,7 +75,16 @@ class UsersService:
                                             last_name=last_name, age=age)
 
 
-    def partial_update_user(self, user_id: int, email: Optional[str] = None, first_name: Optional[str] = None,
+    def update_user_v2(self, user_id: int, email: str,  first_name: str, last_name:str,
+                    age: Optional[int])-> User:
+        existing  = self._get_by_email(email)
+        if existing and existing.id != user_id:
+            raise EmailAlreadyExists(f'email already exists for name {email}')
+
+        return self.repository.update_user( user_id=user_id, email=email, first_name=first_name,
+                                            last_name=last_name, age=age)
+
+    def partial_update_user_v1(self, user_id: int, email: Optional[str] = None, first_name: Optional[str] = None,
                             last_name: Optional[str] = None, age: Optional[int] = None)-> User:
         if email is not None:
             existing = self._get_by_email(email)
@@ -59,6 +94,21 @@ class UsersService:
         return self.repository.partial_update_user(user_id=user_id, email=email, first_name=first_name,
                                                    last_name=last_name, age=age)
 
-    def delete_user(self, user_id: int)-> Optional[User]:
-        return self.repository.delete_user(user_id=user_id)
 
+    def partial_update_user_v2(self, user_id: int, email: Optional[str] = None, first_name: Optional[str] = None,
+                            last_name: Optional[str] = None, age: Optional[int] = None)-> User:
+        if email is not None:
+            existing = self._get_by_email(email)
+            if existing and existing.id != user_id:
+                raise EmailAlreadyExists(f'email already exists for name {email}')
+
+        return self.repository.partial_update_user(user_id=user_id, email=email, first_name=first_name,
+                                                   last_name=last_name, age=age)
+
+
+    def delete_user(self, user_id: int, version: str)-> Optional[User]:
+        if version == "v1":
+            return self.repository.delete_user(user_id=user_id)
+        if version == "v2":
+            # business logic for version v2
+            return self.repository.delete_user(user_id=user_id)
