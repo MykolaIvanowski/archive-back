@@ -18,7 +18,7 @@ from app_orders.schemas.order import (
 )
 from app_orders.utils.errors import UserNotFound
 from app_orders.utils.errors import OrderNotFoundException, CannotDeletePaidOrder
-from app_users.schemas.user import UserCreate
+from app_users.schemas.user_v1 import UserCreate
 
 router = APIRouter(prefix="/orders", tags=["orders"])
 
