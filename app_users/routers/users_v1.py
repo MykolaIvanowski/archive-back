@@ -1,5 +1,4 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from pydantic import version
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from  app_users.db.database import get_db
@@ -13,7 +12,7 @@ from app_users.schemas.user_v1 import (
 
 ## Versioning could be in different folders v1 v2
 
-router  =  APIRouter(prefix="/v1/users", tags=["users-v1"], version="v1")
+router  =  APIRouter(prefix="/v1/users", tags=["users-v1"])
 router.version = "v1"
 
 
@@ -22,7 +21,7 @@ def create_user_v1(payload: UserCreateV1, db: Session = Depends(get_db)):
     service  =  UsersService(db=db)
 
     try:
-        user = service.create_user(
+        user = service.create_user_v1(
             email=payload.email,
             first_name=payload.first_name,
             last_name=payload.last_name,
@@ -38,7 +37,7 @@ def get_user_v1(user_id: int, db: Session = Depends(get_db)):
     service = UsersService(db=db)
 
     try:
-        return service.get_user(user_id=user_id)
+        return service.get_user_v1(user_id=user_id)
     except Exception:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -55,7 +54,7 @@ def list_user_v1(page: int = Query(1, ge=1),
               db: Session = Depends(get_db)):
 
     service = UsersService(db)
-    return service.list_users(
+    return service.list_users_v1(
         page=page, page_size=page_size, email=email, first_name=first_name,
         last_name=last_name, age_min=age_min, age_max=age_max, sort=sort,
         order=order
@@ -66,7 +65,7 @@ def update_user_v1(user_id: int, payload: UserUpdateV1, db: Session = Depends(ge
     service = UsersService(db=db)
 
     try:
-        return service.update_user(
+        return service.update_user_v1(
             user_id=user_id,
             email=payload.email,
             first_name=payload.first_name,
@@ -84,7 +83,7 @@ def partial_update_v1(user_id: int, payload: UserPatchV1, db: Session = Depends(
     service = UsersService(db=db)
 
     try:
-        return service.partial_update_user(user_id=user_id, email=payload.email,
+        return service.partial_update_user_v1(user_id=user_id, email=payload.email,
                                            first_name=payload.first_name,
                                            last_name=payload.last_name,
                                            age=payload.age)
