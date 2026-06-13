@@ -18,7 +18,7 @@ def create_user_v2(payload: UserCreateV2, db: Session = Depends(get_db)):
     service  =  UsersService(db=db)
 
     try:
-        user = service.create_user(
+        user = service.create_user_v2(
             email=payload.email,
             first_name=payload.first_name,
             last_name=payload.last_name,
@@ -34,7 +34,7 @@ def get_user_v2(user_id: int, db: Session = Depends(get_db)):
     service = UsersService(db=db)
 
     try:
-        return service.get_user(user_id=user_id)
+        return service.get_user_v2(user_id=user_id)
     except Exception:
         raise HTTPException(status_code=404, detail="User not found")
 
@@ -51,7 +51,7 @@ def list_user_v2(page: int = Query(1, ge=1),
               db: Session = Depends(get_db)):
 
     service = UsersService(db)
-    return service.list_users(
+    return service.list_users_v2(
         page=page, page_size=page_size, email=email, first_name=first_name,
         last_name=last_name, age_min=age_min, age_max=age_max, sort=sort,
         order=order
@@ -62,7 +62,7 @@ def update_user_v2(user_id: int, payload: UserUpdateV2, db: Session = Depends(ge
     service = UsersService(db=db)
 
     try:
-        return service.update_user(
+        return service.update_user_v2(
             user_id=user_id,
             email=payload.email,
             first_name=payload.first_name,
@@ -80,7 +80,7 @@ def partial_update_v2(user_id: int, payload: UserPatchV2, db: Session = Depends(
     service = UsersService(db=db)
 
     try:
-        return service.partial_update_user(user_id=user_id, email=payload.email,
+        return service.partial_update_user_v2(user_id=user_id, email=payload.email,
                                            first_name=payload.first_name,
                                            last_name=payload.last_name,
                                            age=payload.age)
